@@ -1,0 +1,18 @@
+[project]
+name = "python-ai-app"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "langchain>=1.4.3",
+    "langchain-core>=1.6.6",
+    "langchain-ollama>=1.1.0",
+    "langchain-text-splitters>=1.1.2",
+    "langgraph>=1.2.12",
+    "ocrmac>=1.0.1",
+    "onnxruntime>=1.30.0",
+    "opendataloader-pdf[hybrid]>=2.5.11",
+    "python-dotenv>=1.2.3",
+    "rapidocr>=3.9.2",
+]

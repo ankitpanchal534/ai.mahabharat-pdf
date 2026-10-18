@@ -1,0 +1,7 @@
+langchain
+langchain-ollama
+langgraph
+python-dotenv
+opendataloader-pdf
+langchain_text_splitters
+langchain_core
