@@ -4,6 +4,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
 INPUT = Path("data/corpus/mahabharata_raw.jsonl")
+OUTPUT = Path("data/corpus/mahabharata_chunks.jsonl")
 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
@@ -12,16 +13,28 @@ splitter = RecursiveCharacterTextSplitter(
 
 def load_records():
     records = []
-
     with INPUT.open(encoding="utf-8") as f:
         for line in f:
             record = json.loads(line)
             records.append(record)
-            # chunks = splitter.split_text(text)
-
     return records
 
 def create_section_document(section_records):
+    # count = 0
+
+    # for record in records:
+    #     if (
+    #         record["type"] in {"paragraph", "list_item"}
+    #         and record["section"] == "SECTION I"
+    #         and record["book"] == "BOOK 1 ADI PARVA"
+    #     ):
+    #         print("Page:", record["page"])
+    #         print("Text:", record["text"][:100])
+    #         print("---")
+
+    #         count += 1
+    #         if count == 5:
+    #             break
     # 1. Combine all record text
     # 2. Find first and last page
     # 3. Create and return a LangChain Document
@@ -55,54 +68,41 @@ if __name__ == "__main__":
     for record in records
     if record["section"] is not None
     )
-
-    # print("Number of sections:", len(sections))
-    # print(sorted(sections)[:20])
-    sections = {}
-
+    all_sections = {}
+    # print("record 18 ",records[18])
     for record in records:
         if record["type"] not in {"paragraph", "list_item"}:
             continue
 
+        book = record["book"]
         section = record["section"]
 
         if section is None:
-            continue
-        if section not in sections:
-            sections[section] = []
+           continue
+        key = (book, section)
 
-        sections[record["section"]].append(record)
-    # print("Number of sections:", len(sections))
-    # print("SECTION I records:", len(sections["SECTION I"]))
-    # print(len(sections))
-    # print(len(sections["SECTION I"]))
-    # print(sections["SECTION I"][0])
-    # print(sections["SECTION I"][-1])
+        if key not in all_sections:
+            all_sections[key] = []
+
+        all_sections[key].append(record)
     documents = []
-    for section, section_records in sections.items():
+    for section, section_records in all_sections.items():
         document = create_section_document(section_records)
         documents.append(document)
-    # print("Number of documents:", len(documents))
-    print(documents[0].metadata)
     chunks = splitter.split_documents(documents)
-    print("Number of chunks:", len(chunks))
-    print(chunks[0].metadata)
-    print(chunks[0].page_content[:300])
-    print("Length:", len(chunks[0].page_content))
-    # document = create_section_document(sections["SECTION I"])
-    
-    # print(document.metadata)
-    # print(document.page_content[:200])
-    
+    # chunk = chunks[18]
+    # print("Length:", len(chunk.page_content))
+    # print("Metadata:", chunk.metadata)
+    # print("Text:", chunk.page_content)
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+
+    with OUTPUT.open("w", encoding="utf-8") as f:
+        for chunk in chunks:
+            record = {
+                "text": chunk.page_content,
+                **chunk.metadata,
+            }
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    print(f"Saved {len(chunks)} chunks to {OUTPUT}")
   
-
-    # chunks = splitter.split_documents([document])
-
-    # for i, chunk in enumerate(chunks):
-    #     print(f"\n--- Chunk {i} ---")
-    #     print("Length:", len(chunk.page_content))
-    #     print("Metadata:", chunk.metadata)
-    #     print("Text:", chunk.page_content[:200])
-    # print(document)
-    # print(document.page_content[:200])
-    # print(document.metadata)
